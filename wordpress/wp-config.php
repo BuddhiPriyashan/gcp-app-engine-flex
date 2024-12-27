@@ -12,8 +12,8 @@ if ($onGae) {
     /** Local environment */
     define('DB_HOST', '127.0.0.1');
     /** The name of the database for WordPress */
-    define('DB_NAME', 'groupama-ro-dev');
+    define('DB_NAME', 'DB_Name');
     /** MySQL database username */
     define('DB_USER', 'root');
     /** MySQL database password */
-    define('DB_PASSWORD', 'HsZ=*CjCOn$_nM9g');
+    define('DB_PASSWORD', 'DB_Root_User_Password');
