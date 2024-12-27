@@ -1,0 +1,14 @@
+runtime: php
+env: flex
+
+runtime_config:
+  document_root: wordpress
+  operating_system: ubuntu22
+  runtime_version: 8.3
+
+network:
+  name: projects/<spoke_project>/global/networks/<spoke_VPC>
+  subnetwork_name: <Subnet_in_spoke_VPC>
+
+build_env_variables:
+  NGINX_SERVES_STATIC_FILES: true
