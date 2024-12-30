@@ -1,0 +1,27 @@
+# https://cloud.google.com/appengine/docs/flexible/reference/app-yaml?tab=php
+runtime: php
+env: flex  ##Select the flexible environment
+
+runtime_config:
+  document_root: wordpress
+  operating_system: ubuntu22
+  runtime_version: 8.2
+  enable_stackdriver_integration: true  #trace_setup_php_enabling_stackdriver_integration
+
+network:  #https://cloud.google.com/appengine/docs/flexible/using-shared-vpc
+  name: projects/<spoke_project>/global/networks/<spoke_VPC>
+  subnetwork_name: <Subnet_in_spoke_VPC>
+
+build_env_variables:
+  NGINX_SERVES_STATIC_FILES: true
+
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 10
+
+env_variables: 
+  #MEMCACHE_ENDPOINT: "YOUR_MEMCACHE_ENDPOINT"  #format "host:port"
+  #MEMCACHE_USERNAME: ""                        # If Memcached server with SASL authentiation enabled,
+  #MEMCACHE_PASSWORD: ""  
+  GOOGLE_STORAGE_BUCKET: "website-dev-cloudstorage-bucket"  #gae_flex_storage_yaml
