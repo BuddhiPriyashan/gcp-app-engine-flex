@@ -1,0 +1,8 @@
+#Create Network Endpoint Group (NEG) for App Engine Flex
+
+gcloud compute network-endpoint-groups create app-en-flex-neg \
+ --region=eu-west3 \
+ --network-endpoint-type=serverless  \
+ --app-engine-service=default
+
+   
