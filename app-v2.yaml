@@ -11,6 +11,7 @@ runtime_config:
 network:  #https://cloud.google.com/appengine/docs/flexible/using-shared-vpc
   name: projects/<spoke_project>/global/networks/<spoke_VPC>
   subnetwork_name: <Subnet_in_spoke_VPC>
+  instance_ip_mode: internal
 
 build_env_variables:
   NGINX_SERVES_STATIC_FILES: true
