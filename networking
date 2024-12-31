@@ -67,7 +67,7 @@ gcloud compute backend-services add-backend xxx-wp-app-en-flex-backendservice \
 target proxy.
 Create a Google-managed SSL certificate resource
 gcloud compute ssl-certificates create xxx-wp-app-en-flex-ssl-cert \
- --domains wpdevcloud.groupama.ro
+ --domains wpdevcloud.yyy.ro
 
 
 6. Create a target HTTPS proxy to route requests to your URL map
