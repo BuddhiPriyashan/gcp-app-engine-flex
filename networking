@@ -1,8 +1,22 @@
-#Create Network Endpoint Group (NEG) for App Engine Flex
+#Reserve an external IP address
+gcloud compute addresses create app-en-flex-lb-ip \
+    --network-tier=PREMIUM \
+    --ip-version=IPV4 \
+    --global
 
+#Update DNS records to point domain to this IP address
+
+
+#Create Network Endpoint Group (NEG) for App Engine Flex
 gcloud compute network-endpoint-groups create app-en-flex-neg \
  --region=eu-west3 \
  --network-endpoint-type=serverless  \
  --app-engine-service=default
 
+   
+#Add the serverless NEG as a backend to the backend service
+gcloud compute backend-services add-backend BACKEND_SERVICE_NAME \
+ --global \
+ --network-endpoint-group=SERVERLESS_NEG_NAME \
+ --network-endpoint-group-region=us-central1
    
