@@ -1,22 +1,99 @@
+App Engine Custom Domains
+#https://cloud.google.com/appengine/docs/flexible/mapping-custom-domains
+
+Method 1 - Using pool of shared IP addresses for all domains
+1. To use a custom domain, map the domain to your app
+ - By default, when you map a domain to your app, App Engine issues a managed certificate for SSL for HTTPS 
+connections for each serverless app.
+- App Engine custom domains use a pool of shared IP addresses for all applications.
+
+2. Then update your DNS records.
+!!!OBS: Using custom domains might add noticeable latency to responses that App Engine sends to your app's users in
+europe-west3 is among regions.
+
+
+Method 2 - IP address that only maps to your domain
+https://cloud.google.com/load-balancing/docs/https/setting-up-https-serverless
+
+Serverless NEGs allow you to use Google Cloud serverless apps with external Application Load Balancers. 
+After you configure a load balancer with the serverless NEG backend, requests to the load balancer are 
+routed to the serverless app backend.
+
+Use Cloud Load Balancing and serverless network endpoint group (NEGS) to route traffic to your App Engine 
+app, we recommend that you map your custom domain to the load balancer instead of directly to your app, 
+and use Google-managed SSL certificates that are created for the load balancer.
+
+!!! Important: Use ingress controls so that your app only receives requests sent from
+the load balancer (and the VPC if you use it). Otherwise, users can use your app's App Engine URL to bypass
+the load balancer, Google Cloud Armor security policies, SSL certificates, and private keys that are passed
+through the load balancer. ( https://cloud.google.com/appengine/docs/flexible/application-security#ingress_controls )
+
+
 #Reserve an external IP address
 gcloud compute addresses create app-en-flex-lb-ip \
     --network-tier=PREMIUM \
     --ip-version=IPV4 \
-    --global
+    --global   #Select a Global address, so xxx.ro can be accessed from any where in the world
 
-#Update DNS records to point domain to this IP address
+#create the Load Balancer
+1. Create Network Endpoint Group (NEG) for App Engine Flex - serverless NEG backend to direct requests to 
+a serverless Cloud Run service
+Obs: don't need to create a firewall rule allowing health checks if the load balancer has only serverless 
+NEG backends.
 
+!!!!Obs: App Engine Only support Global LBs ( https://cloud.google.com/load-balancing/docs/negs/serverless-neg-concepts )
 
-#Create Network Endpoint Group (NEG) for App Engine Flex
-gcloud compute network-endpoint-groups create app-en-flex-neg \
+gcloud compute network-endpoint-groups create xxx-wp-app-en-flex-neg \
  --region=eu-west3 \
  --network-endpoint-type=serverless  \
  --app-engine-service=default
 
+2. Create Backend service
+gcloud compute backend-services create xxx-wp-app-en-flex-backendservice \
+ --load-balancing-scheme=EXTERNAL \
+ --global
    
-#Add the serverless NEG as a backend to the backend service
-gcloud compute backend-services add-backend BACKEND_SERVICE_NAME \
+3. Add the serverless NEG as a backend to the backend service
+gcloud compute backend-services add-backend xxx-wp-app-en-flex-backendservice \
  --global \
- --network-endpoint-group=SERVERLESS_NEG_NAME \
- --network-endpoint-group-region=us-central1
+ --network-endpoint-group=xxx-wp-app-en-flex-neg \
+ --network-endpoint-group-region=eu-west3
+
+4. Create a URL map to route incoming requests to the backend service
+ gcloud compute url-maps create xxx-wp-app-en-flex-urlmap \
+  --default-service xxx-wp-app-en-flex-backendservice
+
+5. To create an HTTPS load balancer, you must have an SSL certificate resource to use in the HTTPS 
+target proxy.
+Create a Google-managed SSL certificate resource
+gcloud compute ssl-certificates create xxx-wp-app-en-flex-ssl-cert \
+ --domains wpdevcloud.groupama.ro
+
+
+6. Create a target HTTPS proxy to route requests to your URL map
+gcloud compute target-https-proxies create xxx-wp-app-en-flex-hppts-proxy \
+ --ssl-certificates=xxx-wp-app-en-flex-ssl-cert \
+ --url-map=xxx-wp-app-en-flex-urlmap
+
+7. Create a forwarding rule to route incoming requests to the proxy for HTTS LB
+   gcloud compute forwarding-rules create xxx-wp-app-en-flex-fw-rule \
+       --load-balancing-scheme=EXTERNAL \
+       --network-tier=PREMIUM \
+       --address=example-ip \
+       --target-https-proxy=xxx-wp-app-en-flex-hppts-proxy \
+       --global \
+       --ports=443
+
+#Connect your domain to your load balancer
+Update DNS records to point domain to this IP address
+Add A records:
+For example, to create A records for www.example.com and example.com, use the following:
+NAME                  TYPE     DATA
+www                   A        1.1.1.1
+@                     A        1.1.1.1
+   
+
+
+   
+   
    
