@@ -1,0 +1,80 @@
+#SSH to app engine flexible instance
+
+#Exec into running container
+docker exec -u root -it <container_ID> sh
+
+# ps -a
+    PID TTY          TIME CMD
+     83 pts/0    00:00:00 ps
+
+# ps -aux
+USER         COMMAND
+www-data      /layers/google.utils.nginx/pid1/pid1 --nginxBinaryPath nginx --nginxErrLogFilePath /layers/google.php.webconfig/webconfig/ngin
+www-data      php-fpm: master process (/layers/google.php.webconfig/webconfig/php-fpm.conf)
+www-data      php-fpm: pool app
+www-data      nginx: master process nginx -c /layers/google.php.webconfig/webconfig/nginx.conf
+www-data      php-fpm: pool app
+www-data      nginx: worker process
+
+# cat /layers/google.php.webconfig/webconfig/nginx.conf
+daemon off;
+worker_processes 1;
+error_log /layers/google.php.webconfig/webconfig/nginx.log;
+
+events {
+        worker_connections 1024;
+        use epoll;
+}
+
+http {
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 24h;
+        types_hash_max_size 2048;
+        server_tokens off;
+        client_max_body_size 32m;
+
+        # Set connect timeout to max to correspond with long request timeout.
+        proxy_connect_timeout 75s;
+        proxy_read_timeout 24h;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_buffer_size 8k;
+
+        include /layers/google.utils.nginx/nginx/conf/mime.types;
+        default_type application/octet-stream;
+        access_log /dev/null;
+
+        gzip on;
+        gzip_vary on;
+        gzip_comp_level 1;
+        gzip_proxied any;
+        gzip_types
+                text/plain
+                text/css
+                application/json
+                application/javascript
+                application/x-javascript
+                application/wasm
+                text/xml
+                application/xml
+                application/xml+rss
+                text/javascript;
+
+        include /layers/google.php.webconfig/webconfig/nginxserver.conf;
+}
+
+#OBS: There is permission denied
+# cat /layers/google.php.webconfig/webconfig/nginx.log
+2025/01/06 00:38:38 [crit] 39#39: *1 open() "/var/lib/nginx/body/0000000001" failed (13: Permission denied), client: 172.17.0.4, server: , request: "POST /wp-admin/admin-ajax.php HTTP/1.1", host: "xxx.pp.r.appspot.com", referrer: "https://xxx.pp.r.appspot.com/wp-admin/options-general.php?page=updraftplus"
+2025/01/08 07:42:06 [crit] 39#39: *21343 open() "/var/lib/nginx/body/0000000002" failed (13: Permission denied), client: 172.17.0.4, server: , request: "POST /wp-admin/admin-ajax.php HTTP/1.1", host: "xxx.pp.r.appspot.com", referrer: "https://xxx.pp.r.appspot.com/wp-admin/options-general.php?page=updraftplus"
+2025/01/08 09:21:31 [crit] 39#39: *23018 open() "/var/lib/nginx/body/0000000003" failed (13: Permission denied), client: 172.17.0.4, server: , request: "POST /wp-admin/async-upload.php HTTP/1.1", host: "xxx.pp.r.appspot.com", referrer: "https://xxx.pp.r.appspot.com/wp-admin/upload.php"
+2025/01/08 09:21:58 [crit] 39#39: *23052 open() "/var/lib/nginx/body/0000000004" failed (13: Permission denied), client: 172.17.0.4, server: , request: "POST /wp-admin/async-upload.php HTTP/1.1", host: "xxx.pp.r.appspot.com", referrer: "https://xxx.pp.r.appspot.com/wp-admin/upload.php"
+
+# cd body
+
+# ps -aux
+
+# chown www-data:www-data .
+
+
